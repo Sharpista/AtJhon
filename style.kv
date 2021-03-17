@@ -1,0 +1,46 @@
+<MyLayout>: 
+    do_default_tab: False
+    TabbedPanelItem:
+        id:"firstTab"
+        text: "Tab 1"
+        caminho : caminho
+        mybox : mybox
+        GridLayout:
+            padding: [50, 50, 50, 50]
+            orientation: 'lr-tb'
+            rows:2
+            id:mybox
+            size_hint_y: None
+            height: self.minimum_height
+            Label:
+                text:'Caminho'
+                halign: 'left'
+                size_hint: (None, None)
+                height: 30
+            TextInput:
+                id:caminho
+                height:30 
+                multiline:False
+                size_hint: (None, None)
+                width: root.width / 2
+            Button:
+                text:'Buscar'
+                size: 70,30
+                size_hint: None, None
+                on_press: root.getCaminho()
+            
+                
+
+    TabbedPanelItem:
+        text:"Tab2"
+        BoxLayout:
+            Label:            
+                text: "fsdfsdfsdf"
+            Button:
+                text:"Click"
+    TabbedPanelItem:
+        text:'Tab3'
+        Label:
+            text : 'dfjjhsdjfnsdjf'
+
+
