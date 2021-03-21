@@ -1,99 +1,102 @@
-from kivy.app import App
-from kivy.uix.behaviors.button import ButtonBehavior
-from kivy.uix.label import Label
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
-import os
-
-from kivy.uix.screenmanager import ScreenManager, Screen
+import pygame
+import psutil
+import cpuinfo
 
 
-class ConnectPage(GridLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.cols = 2
-
-        if os.path.isfile("prev_details.txt"):
-            with open("prev_details.txt", "r") as f:
-                d = f.read().split(",")
-                prev_ip = d[0]
-                prev_port = d[1]
-                prev_username = d[2]
-        else:
-            prev_ip = ""
-            prev_port = ""
-            prev_username = ""
-
-        self.add_widget(Label(text='IP: '))
-        self.ip = TextInput(text=prev_ip, multiline=False)
-        self.add_widget(self.ip)
-
-        self.add_widget(Label(text='Port: '))
-        self.port = TextInput(text=prev_port, multiline=False)
-        self.add_widget(self.port)
-
-        self.add_widget(Label(text='Username: '))
-        self.username = TextInput(text=prev_username, multiline=False)
-        self.add_widget(self.username)
-
-        self.join = Button(text="Join")
-        self.join.bind(on_press=self.join_button)
-        self.add_widget(Label())
-        self.add_widget(self.join)
-
-    def join_button(self, instance):
-        port = self.port.text
-        ip = self.ip.text
-        username = self.username.text
-
-        with open("prev_details.txt", "w") as f:
-            f.write(f"{ip}, {port}, {username}")
-
-        info = print(f"Joining {ip}:{port}: as {username}")
-
-        chat_app.info_page.update_info(info)
-        chat_app.screen_manager.current = "Info"
+# Mostra as informações de CPU escolhidas:
+def mostra_info_cpu():
+    s1.fill(branco)
+    mostra_texto(s1, "Nome:", "brand_raw", 10)
+    mostra_texto(s1, "Arquitetura:", "arch", 30)
+    mostra_texto(s1, "Palavra (bits):", "bits", 50)
+    mostra_texto(s1, "Frequência (MHz):", "hz_actual_friendly", 70)
+    mostra_texto(s1, "Núcleos (físicos):", "count", 90)
+    tela.blit(s1, (0, 0))
 
 
-class InfoPage(GridLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.cols = 1
-
-        self.message = Label(halign="center", valign="middle", font_size=50)
-        self.message.bind(width=self.update_text_width)
-
-        self.add_widget(self.message)
-
-    def update_info(self, message):
-        self.message.text = message
-
-    def update_text_width(self, *_):
-        self.message.text_size = (self.message * 0.9, None)
+# Mostra texto de acordo com uma chave:
+def mostra_texto(s1, nome, chave, pos_y):
+    text = font.render(nome, True, preto)
+    s1.blit(text, (10, pos_y))
+    if chave == "freq":
+        s = str(round(psutil.cpu_freq().current, 2))
+    elif chave == "nucleos":
+        s = str(psutil.cpu_count())
+        s = s + " (" + str(psutil.cpu_count(logical=False)) + ")"
+    else:
+        s = str(info_cpu[chave])
+        text = font.render(s, True, cinza)
+        s1.blit(text, (160, pos_y))
 
 
-class EpicApp(App):
-    def build(self):
-
-        self.screen_manager = ScreenManager()
-
-        self.connect_page = ConnectPage()
-        screen = Screen(name="Connect")
-        screen.add_widget(self.connect_page)
-        self.screen_manager.add_widget(screen)
-
-        # InfoPage
-        self.info_page = InfoPage()
-        screen = Screen(name="Info")
-        screen.add_widget(self.info_page)
-        self.screen_manager.add_widget(screen)
-
-        return ConnectPage()
+def mostra_uso_cpu(s, l_cpu_percent):
+    s.fill(cinza)
+    num_cpu = len(l_cpu_percent)
+    x = y = 10
+    desl = 10
+    alt = s.get_height() - 2 * y
+    larg = (s.get_width() - 2 * y - (num_cpu + 1) * desl) / num_cpu
+    d = x + desl
+    for i in l_cpu_percent:
+        pygame.draw.rect(s, vermelho, (d, y, larg, alt))
+        pygame.draw.rect(s, azul, (d, y, larg, (1 - i / 100) * alt))
+        d = d + larg + desl
+    # parte mais abaixo da tela e à esquerda
+    tela.blit(s, (0, altura_tela / 5))
 
 
-if __name__ == "__main__":
-    chat_app = EpicApp()
-    chat_app.run
+# Obtém informações da CPU
+info_cpu = cpuinfo.get_cpu_info()
+
+# Definição de cores utilizadas na tela
+preto = (0, 0, 0)
+branco = (255, 255, 255)
+cinza = (100, 100, 100)
+azul = (0, 0, 255)
+vermelho = (255, 0, 0)
+
+# Iniciando a janela principal
+largura_tela = 800
+altura_tela = 600
+tela = pygame.display.set_mode((largura_tela, altura_tela))
+pygame.display.set_caption("Informações de CPU")
+pygame.display.init()
+
+# Superfície para mostrar as informações:
+s1 = pygame.surface.Surface((largura_tela, altura_tela))
+s2 = pygame.surface.Surface((largura_tela, altura_tela))
+
+# Para usar na fonte
+pygame.font.init()
+font = pygame.font.Font(None, 24)
+
+# Cria relógio
+clock = pygame.time.Clock()
+
+# Contador de tempo
+cont = 60
+
+terminou = False
+# Repetição para capturar eventos e atualizar tela
+while not terminou:
+    # Checar os eventos do mouse aqui:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            terminou = True
+
+    # Fazer a atualização a cada segundo:
+    if cont == 60:
+        mostra_info_cpu()
+        l_cpu_percent = psutil.cpu_percent(percpu=True)
+        mostra_uso_cpu(s2, l_cpu_percent)
+        cont = 0
+
+    # Atualiza o desenho na tela
+    pygame.display.update()
+
+    # 60 frames por segundo
+    clock.tick(60)
+    cont = cont + 1
+
+# Finaliza a janela
+pygame.display.quit()
