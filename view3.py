@@ -13,8 +13,8 @@ pygame.font.init()
 # Define e mostra a tela
 
 
-largura_tela = 1376
-altura_tela = 800
+largura_tela = 900
+altura_tela = 600
 
 
 tela = pygame.display.set_mode((largura_tela, altura_tela))
@@ -41,29 +41,6 @@ cordabarra = (0, 0, 255)
 cordoindice = (255, 0, 0)
 cordafonte = (255, 255, 255)
 
-def getDiretorio():
-    try:
-        diretorio = input("Entre com o caminho do diretório : ")
-        arquivos = [f for f in os.listdir(diretorio)]
-        arq = []
-        for i in arquivos:
-            tipo = i , extension = os.path.splitext(diretorio)
-            obj = {
-                "Nome Arquivo": i,
-                "Tamanho":os.path.getsize(join(diretorio, i)),
-                "Diretório": join(diretorio, i),
-                "Data de criação": time.ctime(os.path.getmtime(i)),
-                "Data de Modificação": time.ctime(os.path.getctime(i)),
-                "Tipo": tipo
-            }
-            arq.append(obj)
-
-        return [m for m in arq]
-
-    except Exception as erro:
-        print(str(erro))
-
-
 
 
 def mostraMem():
@@ -82,7 +59,7 @@ def mostraDisco():
 
 
 def desenha_barra_mem():
-    mem = psutil.virtual_memory()
+    mem = mostraMem()
     larg = largura_tela - 2 * 20
     s1.fill(cordofundo)
     pygame.draw.rect(s1, cordabarra, (20, 50, larg, 70))

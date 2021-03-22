@@ -2,7 +2,6 @@ import pickle
 
 import socket
 
-import psutil
 import pygame
 
 s = socket.socket()
@@ -15,12 +14,19 @@ while True:
     s.send(msg.encode('ascii'))
     bytes = s.recv(4096)
     arq = s.recv(4096)
+    pids = s.recv(12000)
+    outros_bytes = s.recv(4096)
 
     cpu_info = pickle.loads(bytes)
     arquivo = pickle.loads(arq)
+    pid = pickle.loads(pids)
 
-    print(cpu_info)
-    print(arquivo)
+    outros = pickle.loads(outros_bytes)
+    for x in pid:
+        print(x)
+
+    for i,k in outros.items():
+        print(i,k)
 
     if msg == 'fim':
         s.send(msg.encode('ascii'))
@@ -42,13 +48,12 @@ while True:
         text = font.render(nome, True, preto)
         s1.blit(text, (10, pos_y))
         if chave == "freq":
-            s = str(round(arquivo['freq'], 2))
+            s = str(round(arquivo[0], 2))
         elif chave == "nucleos":
-            s = str(arquivo['cpu_cont'])
-            s = s + " (" + str(psutil.cpu_count(logical=False)) + ")"
+            s = str(arquivo[1])
+            s = s + " (" + str(arquivo[2]) + ")"
         else:
-            a = list(filter(lambda x: x == chave, cpu_info))
-            s = str(a[0])
+            s = str(cpu_info[chave])
             text = font.render(s, True, cinza)
             s1.blit(text, (160, pos_y))
 
@@ -77,8 +82,8 @@ while True:
     vermelho = (255, 0, 0)
 
     # Iniciando a janela principal
-    largura_tela = 1024
-    altura_tela = 768
+    largura_tela = 900
+    altura_tela = 600
     tela = pygame.display.set_mode((largura_tela, altura_tela))
     pygame.display.set_caption("Informações de CPU")
     pygame.display.init()
@@ -98,7 +103,6 @@ while True:
     cont = 60
 
     terminou = True
-    scroll_y = 0
 
     # Repetição para capturar eventos e atualizar tela
     while terminou:
@@ -106,21 +110,17 @@ while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminou = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 4: scroll_y = min(scroll_y + 15, 0)
-                if event.button == 5: scroll_y = max(scroll_y - 15, -300)
 
         # Fazer a atualização a cada segundo:
         if cont == 60:
             mostra_info_cpu()
-            lista = list(map(int, arquivo['cpu_perc']))
+            lista = arquivo[3]
             l_cpu_percent = lista
             mostra_uso_cpu(s2, l_cpu_percent)
             cont = 0
 
         # Atualiza o desenho na tela
         pygame.display.update()
-        pygame.display.flip()
 
         # 60 frames por segundo
         clock.tick(60)

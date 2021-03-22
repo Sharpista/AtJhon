@@ -47,6 +47,7 @@ def mostra_uso_cpu(s, l_cpu_percent):
 
 # Obtém informações da CPU
 info_cpu = cpuinfo.get_cpu_info()
+print(info_cpu)
 
 # Definição de cores utilizadas na tela
 preto = (0, 0, 0)

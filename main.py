@@ -54,20 +54,32 @@ def mostra_uso_cpu(s, l_cpu_percent):
     Contexto.tela.blit(s, (0, 600 / 5))
 
 
-def dados_dir(dir):
-    if os.path.isdir(dir):
-        diretorio = Diretorio
-        somador = 0
-        somador = somador + os.stat(dir).st_size
-        diretorio.tamanho = str(somador)
-        diretorio.nome_diretorio = os.path.basename(dir)
-        diretorio.data_criacao = time.ctime(os.path.getmtime(dir))
-        diretorio.data_mod = time.ctime(os.path.getctime(dir))
-        diretorio.diretorios = [d for d in os.listdir(dir) if os.path.isfile(d)]
+def dados_dir():
+    lista = os.listdir()
+    dic = {}  # cria dicionário
+    for i in lista:  # Varia na lista dos arquivos e diretórios
+        if os.path.isfile(i):  # checa se é um arquivo
+            # Cria uma lista para cada arquivo. Esta lista contém o
+            # tamanho, data de criação e data de modificação.
+            dic[i] = []
+            dic[i].append(os.stat(i).st_size)  # Tamanho
+            dic[i].append(os.stat(i).st_atime)  # Tempo de criação
+            dic[i].append(os.stat(i).st_mtime)  # Tempo de modificação
 
-        return diretorio
-    else:
-        return "O diretório", '\'' + dir + '\'', "não existe."
+    titulo = '{:11}'.format("Tamanho")  # 10 caracteres + 1 de espaço
+
+    # Concatenar com 25 caracteres + 2 de espaços
+    titulo = titulo + '{:27}'.format("Data de Modificação")
+
+    # Concatenar com 25 caracteres + 2 de espaços
+    titulo = titulo + '{:27}'.format("Data de Criação")
+
+    titulo = titulo + "Nome"
+
+    for i in dic:
+        kb = (dic[i][0]) / 1000
+        tamanho = '{:10}'.format(str('{:.2f}'.format(kb)) + ' KB')
+        tamanho, time.ctime(dic[i][2]), " ", time.ctime(dic[i][1]), " ", i
 
 
 def dados_pid():
@@ -76,15 +88,8 @@ def dados_pid():
         p = {
             "Nº PID": proc.pid,
             "Nome Executável": proc.name(),
-            "Uso memória": "{:.0%}".format(proc.memory_percent().real)
         }
         processos.append(p)
-
-    for i in range(len(processos)):
-        m = processos[i]
-        p = psutil.Process(m['Nº PID'])
-        uso = p.cpu_percent(interval=0.1)
-        m.update({"Uso CPU": uso})
 
     return processos
 
